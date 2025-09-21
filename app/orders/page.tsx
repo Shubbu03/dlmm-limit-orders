@@ -150,7 +150,7 @@ export default function OrdersPage() {
                             </label>
                             <select
                                 value={filter}
-                                onChange={(e) => setFilter(e.target.value as any)}
+                                onChange={(e) => setFilter(e.target.value as 'all' | 'pending' | 'filled' | 'executed' | 'canceled')}
                                 className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                             >
                                 <option value="all">All Orders</option>
@@ -168,7 +168,7 @@ export default function OrdersPage() {
                             </label>
                             <select
                                 value={sortBy}
-                                onChange={(e) => setSortBy(e.target.value as any)}
+                                onChange={(e) => setSortBy(e.target.value as 'createdAt' | 'price' | 'amount' | 'status')}
                                 className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                             >
                                 <option value="createdAt">Created Date</option>
@@ -185,7 +185,7 @@ export default function OrdersPage() {
                             </label>
                             <select
                                 value={sortOrder}
-                                onChange={(e) => setSortOrder(e.target.value as any)}
+                                onChange={(e) => setSortOrder(e.target.value as 'asc' | 'desc')}
                                 className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                             >
                                 <option value="desc">Descending</option>

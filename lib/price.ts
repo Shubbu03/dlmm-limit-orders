@@ -34,6 +34,7 @@ export async function getPrice(symbol: string): Promise<number> {
                 return pythPrice;
             }
         } catch (pythError) {
+            console.error('Pyth price fetch failed:', pythError);
             // Silent fallback to alternative API
         }
 
@@ -43,6 +44,7 @@ export async function getPrice(symbol: string): Promise<number> {
                 return altPrice;
             }
         } catch (altError) {
+            console.error('Alternative price fetch failed:', altError);
             // Silent fallback to static price
         }
 
@@ -50,6 +52,7 @@ export async function getPrice(symbol: string): Promise<number> {
         const variation = (Math.random() - 0.5) * 0.02;
         return basePrice * (1 + variation);
     } catch (error) {
+        console.error('Price fetch failed:', error);
         return FALLBACK_PRICES[symbol as keyof typeof FALLBACK_PRICES] || 100.0;
     }
 }
@@ -77,6 +80,7 @@ export async function monitorPrice(
                 const priceData = await getPriceData(symbol);
                 callback(priceData);
             } catch (error) {
+                console.error('Price monitoring error:', error);
                 // Silent error handling
             }
             await new Promise(resolve => setTimeout(resolve, intervalMs));
@@ -153,13 +157,14 @@ export async function getPythPrice(symbol: string): Promise<number> {
             const data = await response.json();
             if (!data || !data.price_feeds || data.price_feeds.length === 0) continue;
 
-            const priceFeed = data.price_feeds.find((feed: any) => feed.id === priceFeedId);
+            const priceFeed = data.price_feeds.find((feed: { id: string; price: { price: number; expo: number } }) => feed.id === priceFeedId);
             if (!priceFeed || !priceFeed.price) continue;
 
             const price = priceFeed.price.price;
             const expo = priceFeed.price.expo;
             return price * Math.pow(10, expo);
         } catch (endpointError) {
+            console.error('Endpoint error:', endpointError);
             continue;
         }
     }
@@ -175,6 +180,7 @@ export async function getMultiplePrices(symbols: string[]): Promise<Record<strin
             try {
                 prices[symbol] = await getPrice(symbol);
             } catch (error) {
+                console.error(`Failed to get price for ${symbol}:`, error);
                 prices[symbol] = FALLBACK_PRICES[symbol as keyof typeof FALLBACK_PRICES] || 0;
             }
         })

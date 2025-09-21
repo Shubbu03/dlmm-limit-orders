@@ -1,14 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { PublicKey } from '@solana/web3.js';
 import { TOKEN_PAIRS, getPairAddress, getBinForPrice, priceForBin } from '@/lib/orders';
 import { getDlmmClient, getPoolInfo, placeStopLossOrderWithDLMM } from '@/lib/dlmmClient';
 import { OrderStorage, Order } from '@/lib/orders';
 import { getPrice } from '@/lib/price';
 import StopLossMonitor from '@/components/orders/StopLossMonitor';
-import PageLayout from '@/components/layout/PageLayout';
 
 export default function StopLossPage() {
     const { wallet, connected } = useWallet();
@@ -19,7 +17,7 @@ export default function StopLossPage() {
         triggerPrice: '',
         amount: ''
     });
-    const [poolInfo, setPoolInfo] = useState<any>(null);
+    const [poolInfo, setPoolInfo] = useState<{ binStep: number;[key: string]: unknown } | null>(null);
     const [currentPrice, setCurrentPrice] = useState<number | null>(null);
     const [binInfo, setBinInfo] = useState<{ binIndex: number; binPrice: number } | null>(null);
     const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
@@ -66,17 +64,18 @@ export default function StopLossPage() {
         }
     }, [isMonitoring, formData.pair]);
 
-    const loadPoolInfo = async () => {
+    const loadPoolInfo = useCallback(async () => {
         try {
             const pairAddress = await getPairAddress(formData.pair);
             const info = await getPoolInfo(pairAddress);
             setPoolInfo(info);
         } catch (error) {
+            console.error('Failed to load pool information:', error);
             showToast('error', 'Failed to load pool information');
         }
-    };
+    }, [formData.pair]);
 
-    const loadCurrentPrice = async () => {
+    const loadCurrentPrice = useCallback(async () => {
         try {
             const baseToken = formData.pair.split('/')[0];
             const priceKey = `${baseToken}/USD`;
@@ -87,11 +86,12 @@ export default function StopLossPage() {
                 // Trigger condition met
             }
         } catch (error) {
+            console.error('Failed to load current price:', error);
             // Silent error handling
         }
-    };
+    }, [formData.pair, formData.triggerPrice]);
 
-    const updateBinInfo = async () => {
+    const updateBinInfo = useCallback(async () => {
         try {
             const price = parseFloat(formData.triggerPrice);
             if (isNaN(price) || !poolInfo) return;
@@ -102,9 +102,10 @@ export default function StopLossPage() {
 
             setBinInfo({ binIndex, binPrice });
         } catch (error) {
+            console.error('Failed to update bin info:', error);
             // Silent error handling
         }
-    };
+    }, [formData.triggerPrice, formData.pair, poolInfo]);
 
     const showToast = (type: 'success' | 'error', message: string) => {
         setToast({ type, message });
@@ -136,8 +137,8 @@ export default function StopLossPage() {
         try {
             const pairAddress = await getPairAddress(formData.pair);
 
-            // Get DLMM client
-            const dlmmClient = await getDlmmClient(pairAddress);
+            // Get DLMM client (for future use)
+            await getDlmmClient(pairAddress);
 
             const binIndex = await getBinForPrice(formData.pair, triggerPrice, pairAddress);
             const result = await placeStopLossOrderWithDLMM({
@@ -188,10 +189,10 @@ export default function StopLossPage() {
         }
     };
 
-    const stopMonitoring = () => {
+    const stopMonitoring = useCallback(() => {
         setIsMonitoring(false);
         showToast('success', 'Price monitoring stopped');
-    };
+    }, []);
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">

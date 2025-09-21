@@ -57,7 +57,7 @@ export async function placeLimitOrderWithDLMM(params: {
 }) {
     const { poolAddress, side, price, size, userPublicKey } = params;
 
-    const client = await getDlmmClient(poolAddress);
+    await getDlmmClient(poolAddress);
     const poolInfo = await getPoolInfo(poolAddress);
 
     const binStep = poolInfo.binStep;
@@ -84,7 +84,7 @@ export async function placeStopLossOrderWithDLMM(params: {
 }) {
     const { poolAddress, side, triggerPrice, size, userPublicKey } = params;
 
-    const client = await getDlmmClient(poolAddress);
+    await getDlmmClient(poolAddress);
     const poolInfo = await getPoolInfo(poolAddress);
 
     const binStep = poolInfo.binStep;
@@ -110,7 +110,7 @@ export async function closePositionWithDLMM(params: {
 }) {
     const { poolAddress, positionId, userPublicKey } = params;
 
-    const client = await getDlmmClient(poolAddress);
+    await getDlmmClient(poolAddress);
     const positions = await getUserPositions(poolAddress, userPublicKey);
     const position = positions.find(p => p.positionMint === positionId);
 

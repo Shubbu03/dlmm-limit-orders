@@ -1,6 +1,5 @@
 import { LiquidityBookServices, MODE } from "@saros-finance/dlmm-sdk";
 import { Wallet } from "@solana/wallet-adapter-react";
-import { PublicKey } from "@solana/web3.js";
 import { connection } from "./connection";
 import { getBinForPrice, getPairAddress, TOKEN_PAIRS } from "./orders";
 import { setWalletProvider } from "./walletProvider";

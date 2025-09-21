@@ -1,8 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { PublicKey } from '@solana/web3.js';
 import { TOKEN_PAIRS, getPairAddress, getBinForPrice, priceForBin } from '@/lib/orders';
 import { getDlmmClient, getPoolInfo, placeLimitOrderWithDLMM } from '@/lib/dlmmClient';
 import { OrderStorage, Order } from '@/lib/orders';
@@ -18,7 +17,7 @@ export default function LimitOrderPage() {
         price: '',
         amount: ''
     });
-    const [poolInfo, setPoolInfo] = useState<any>(null);
+    const [poolInfo, setPoolInfo] = useState<{ binStep: number;[key: string]: unknown } | null>(null);
     const [currentPrice, setCurrentPrice] = useState<number | null>(null);
     const [binInfo, setBinInfo] = useState<{ binIndex: number; binPrice: number } | null>(null);
     const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
@@ -53,28 +52,30 @@ export default function LimitOrderPage() {
         }
     }, [formData.price, poolInfo]);
 
-    const loadPoolInfo = async () => {
+    const loadPoolInfo = useCallback(async () => {
         try {
             const pairAddress = await getPairAddress(formData.pair);
             const info = await getPoolInfo(pairAddress);
             setPoolInfo(info);
         } catch (error) {
+            console.error('Failed to load pool information:', error);
             showToast('error', 'Failed to load pool information');
         }
-    };
+    }, [formData.pair]);
 
-    const loadCurrentPrice = async () => {
+    const loadCurrentPrice = useCallback(async () => {
         try {
             const baseToken = formData.pair.split('/')[0];
             const priceKey = `${baseToken}/USD`;
             const price = await getPrice(priceKey);
             setCurrentPrice(price);
         } catch (error) {
+            console.error('Failed to load current price:', error);
             // Silent error handling
         }
-    };
+    }, [formData.pair]);
 
-    const updateBinInfo = async () => {
+    const updateBinInfo = useCallback(async () => {
         try {
             const price = parseFloat(formData.price);
             if (isNaN(price) || !poolInfo) return;
@@ -85,9 +86,10 @@ export default function LimitOrderPage() {
 
             setBinInfo({ binIndex, binPrice });
         } catch (error) {
+            console.error('Failed to update bin info:', error);
             // Silent error handling
         }
-    };
+    }, [formData.price, formData.pair, poolInfo]);
 
     const showToast = (type: 'success' | 'error', message: string) => {
         setToast({ type, message });
@@ -119,8 +121,8 @@ export default function LimitOrderPage() {
         try {
             const pairAddress = await getPairAddress(formData.pair);
 
-            // Get DLMM client
-            const dlmmClient = await getDlmmClient(pairAddress);
+            // Get DLMM client (for future use)
+            await getDlmmClient(pairAddress);
 
             const binIndex = await getBinForPrice(formData.pair, price, pairAddress);
             const result = await placeLimitOrderWithDLMM({

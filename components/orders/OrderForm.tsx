@@ -101,6 +101,7 @@ export default function OrderForm() {
                 alert('Order placed successfully!');
             }
         } catch (error) {
+            console.error('Failed to place order:', error);
             alert('Failed to place order. Please try again.');
         } finally {
             setIsSubmitting(false);

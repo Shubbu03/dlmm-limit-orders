@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { getPrice, PriceData } from '@/lib/price';
 
 interface PriceMonitorProps {
@@ -13,7 +13,7 @@ export default function PriceMonitor({ symbols, refreshInterval = 10000 }: Price
     const [isLoading, setIsLoading] = useState(true);
     const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
 
-    const fetchPrices = async () => {
+    const fetchPrices = useCallback(async () => {
         try {
             const pricePromises = symbols.map(async (symbol) => {
                 const priceData = await getPrice(symbol);
@@ -39,9 +39,10 @@ export default function PriceMonitor({ symbols, refreshInterval = 10000 }: Price
             setLastUpdate(new Date());
             setIsLoading(false);
         } catch (error) {
+            console.error('Failed to fetch prices:', error);
             setIsLoading(false);
         }
-    };
+    }, [symbols]);
 
     useEffect(() => {
         // Initial fetch
@@ -51,7 +52,7 @@ export default function PriceMonitor({ symbols, refreshInterval = 10000 }: Price
         const interval = setInterval(fetchPrices, refreshInterval);
 
         return () => clearInterval(interval);
-    }, [symbols, refreshInterval]);
+    }, [symbols, refreshInterval, fetchPrices]);
 
     if (isLoading) {
         return (

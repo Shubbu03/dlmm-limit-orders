@@ -31,6 +31,7 @@ export default function StopLossMonitor({ pair, triggerPrice, onTrigger, isActiv
                     onTrigger();
                 }
             } catch (error) {
+                console.error('Failed to fetch price for stop-loss monitor:', error);
                 // Silent error handling
             }
         };

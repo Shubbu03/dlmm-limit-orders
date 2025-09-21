@@ -91,7 +91,7 @@ export async function getBinForPrice(pairValue: string, price: number, pairAddre
             throw new Error(`Token pair ${pairValue} not found`);
         }
 
-        let pair: any;
+        let pair: { binStep: number;[key: string]: unknown };
 
         if (pairAddress) {
             // Use provided pair address
@@ -131,7 +131,7 @@ export async function priceForBin(binIndex: number, pairValue: string, pairAddre
             throw new Error(`Token pair ${pairValue} not found`);
         }
 
-        let pair: any;
+        let pair: { binStep: number;[key: string]: unknown };
 
         if (pairAddress) {
             // Use provided pair address
@@ -242,11 +242,12 @@ export class OrderStorage {
 
         try {
             const stored = localStorage.getItem(this.STORAGE_KEY);
-            return stored ? JSON.parse(stored).map((order: any) => ({
+            return stored ? JSON.parse(stored).map((order: Order) => ({
                 ...order,
                 createdAt: new Date(order.createdAt)
             })) : [];
         } catch (error) {
+            console.error('Failed to get orders:', error);
             return [];
         }
     }
@@ -259,6 +260,7 @@ export class OrderStorage {
             orders.push(order);
             localStorage.setItem(this.STORAGE_KEY, JSON.stringify(orders));
         } catch (error) {
+            console.error('Failed to save order:', error);
             // Silent error handling
         }
     }
@@ -274,6 +276,7 @@ export class OrderStorage {
                 localStorage.setItem(this.STORAGE_KEY, JSON.stringify(orders));
             }
         } catch (error) {
+            console.error('Failed to save order:', error);
             // Silent error handling
         }
     }
@@ -286,6 +289,7 @@ export class OrderStorage {
             const filteredOrders = orders.filter(order => order.id !== orderId);
             localStorage.setItem(this.STORAGE_KEY, JSON.stringify(filteredOrders));
         } catch (error) {
+            console.error('Failed to save order:', error);
             // Silent error handling
         }
     }

@@ -134,9 +134,9 @@ export default function NewOrderPage() {
                         </h4>
                         <ul className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
                             <li>• You want to limit potential losses</li>
-                            <li>• You can't monitor prices constantly</li>
+                            <li>• You can&apos;t monitor prices constantly</li>
                             <li>• You want automatic risk management</li>
-                            <li>• You're protecting existing positions</li>
+                            <li>• You&apos;re protecting existing positions</li>
                         </ul>
                     </div>
                 </div>
