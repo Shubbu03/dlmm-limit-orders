@@ -3,15 +3,17 @@
 import { useState } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { placeLimitOrder } from '@/lib/dlmm';
-import { TOKEN_PAIRS, OrderStorage, Order } from '@/lib/orders';
+import { placeStopLossOrder, getPairAddress, TOKEN_PAIRS, OrderStorage, Order } from '@/lib/orders';
 
 export default function OrderForm() {
     const { wallet, connected } = useWallet();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [formData, setFormData] = useState({
         pair: 'SOL/USDC',
+        type: 'limit' as 'limit' | 'stop-loss',
         side: 'buy' as 'buy' | 'sell',
         price: '',
+        triggerPrice: '',
         amount: ''
     });
 
@@ -24,36 +26,67 @@ export default function OrderForm() {
         }
 
         const price = parseFloat(formData.price);
+        const triggerPrice = parseFloat(formData.triggerPrice);
         const amount = parseFloat(formData.amount);
 
-        if (isNaN(price) || isNaN(amount) || price <= 0 || amount <= 0) {
-            alert('Please enter valid price and amount');
+        if (isNaN(amount) || amount <= 0) {
+            alert('Please enter valid amount');
+            return;
+        }
+
+        if (formData.type === 'limit' && (isNaN(price) || price <= 0)) {
+            alert('Please enter valid target price for limit order');
+            return;
+        }
+
+        if (formData.type === 'stop-loss' && (isNaN(triggerPrice) || triggerPrice <= 0)) {
+            alert('Please enter valid trigger price for stop-loss order');
             return;
         }
 
         setIsSubmitting(true);
 
         try {
-            const result = await placeLimitOrder({
-                wallet,
-                pair: formData.pair,
-                price,
-                amount,
-                side: formData.side
-            });
+            let result;
+
+            if (formData.type === 'limit') {
+                result = await placeLimitOrder({
+                    wallet,
+                    pair: formData.pair,
+                    price,
+                    amount,
+                    side: formData.side
+                });
+            } else {
+                // For stop-loss orders, use the new DLMM SDK integration
+                if (!wallet.adapter.publicKey) {
+                    throw new Error("Wallet public key not available");
+                }
+
+                const pairAddress = await getPairAddress(formData.pair);
+                result = await placeStopLossOrder({
+                    pool: pairAddress,
+                    side: formData.side,
+                    triggerPrice,
+                    size: amount,
+                    userPublicKey: wallet.adapter.publicKey
+                });
+            }
 
             if (result.success) {
                 // Create order object
                 const order: Order = {
-                    id: result.txId,
+                    id: 'positionMint' in result ? result.positionMint : result.txId,
                     pair: formData.pair,
-                    type: 'limit',
+                    type: formData.type,
                     side: formData.side,
-                    price,
+                    price: formData.type === 'limit' ? price : triggerPrice,
                     amount,
                     status: 'pending',
                     createdAt: new Date(),
-                    binIndex: result.binIndex
+                    binIndex: 'binIndex' in result ? result.binIndex : undefined,
+                    pairAddress: 'pairAddress' in result ? result.pairAddress : undefined,
+                    triggerPrice: formData.type === 'stop-loss' ? triggerPrice : undefined
                 };
 
                 // Save to storage
@@ -62,8 +95,10 @@ export default function OrderForm() {
                 // Reset form
                 setFormData({
                     pair: 'SOL/USDC',
+                    type: 'limit',
                     side: 'buy',
                     price: '',
+                    triggerPrice: '',
                     amount: ''
                 });
 
@@ -119,6 +154,35 @@ export default function OrderForm() {
                         <label className="flex items-center">
                             <input
                                 type="radio"
+                                value="limit"
+                                checked={formData.type === 'limit'}
+                                onChange={(e) => handleInputChange('type', e.target.value)}
+                                className="mr-2"
+                            />
+                            <span className="text-blue-600 dark:text-blue-400 font-medium">Limit Order</span>
+                        </label>
+                        <label className="flex items-center">
+                            <input
+                                type="radio"
+                                value="stop-loss"
+                                checked={formData.type === 'stop-loss'}
+                                onChange={(e) => handleInputChange('type', e.target.value)}
+                                className="mr-2"
+                            />
+                            <span className="text-orange-600 dark:text-orange-400 font-medium">Stop-Loss</span>
+                        </label>
+                    </div>
+                </div>
+
+                {/* Buy/Sell Selection */}
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Side
+                    </label>
+                    <div className="flex space-x-4">
+                        <label className="flex items-center">
+                            <input
+                                type="radio"
                                 value="buy"
                                 checked={formData.side === 'buy'}
                                 onChange={(e) => handleInputChange('side', e.target.value)}
@@ -139,22 +203,45 @@ export default function OrderForm() {
                     </div>
                 </div>
 
-                {/* Target Price */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Target Price (USDC)
-                    </label>
-                    <input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        value={formData.price}
-                        onChange={(e) => handleInputChange('price', e.target.value)}
-                        placeholder="Enter target price"
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                        required
-                    />
-                </div>
+                {/* Price Input - Conditional based on order type */}
+                {formData.type === 'limit' && (
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Target Price (USDC)
+                        </label>
+                        <input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            value={formData.price}
+                            onChange={(e) => handleInputChange('price', e.target.value)}
+                            placeholder="Enter target price"
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                            required
+                        />
+                    </div>
+                )}
+
+                {formData.type === 'stop-loss' && (
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Trigger Price (USDC)
+                        </label>
+                        <input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            value={formData.triggerPrice}
+                            onChange={(e) => handleInputChange('triggerPrice', e.target.value)}
+                            placeholder="Enter trigger price"
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 dark:bg-gray-700 dark:text-white"
+                            required
+                        />
+                        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                            Order will execute when price drops to or below this level
+                        </p>
+                    </div>
+                )}
 
                 {/* Amount */}
                 <div>
@@ -179,16 +266,20 @@ export default function OrderForm() {
                     disabled={!connected || isSubmitting}
                     className={`w-full py-2 px-4 rounded-md font-medium text-white ${!connected || isSubmitting
                         ? 'bg-gray-400 cursor-not-allowed'
-                        : formData.side === 'buy'
-                            ? 'bg-green-600 hover:bg-green-700'
-                            : 'bg-red-600 hover:bg-red-700'
+                        : formData.type === 'stop-loss'
+                            ? 'bg-orange-600 hover:bg-orange-700'
+                            : formData.side === 'buy'
+                                ? 'bg-green-600 hover:bg-green-700'
+                                : 'bg-red-600 hover:bg-red-700'
                         } transition-colors duration-200`}
                 >
                     {!connected
                         ? 'Connect Wallet First'
                         : isSubmitting
                             ? 'Placing Order...'
-                            : `Place ${formData.side === 'buy' ? 'Buy' : 'Sell'} Order`}
+                            : formData.type === 'stop-loss'
+                                ? 'Place Stop-Loss Order'
+                                : `Place ${formData.side === 'buy' ? 'Buy' : 'Sell'} Limit Order`}
                 </button>
             </form>
         </div>

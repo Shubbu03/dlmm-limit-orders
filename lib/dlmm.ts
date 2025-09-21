@@ -1,7 +1,10 @@
 import { LiquidityBookServices, MODE } from "@saros-finance/dlmm-sdk";
 import { Wallet } from "@solana/wallet-adapter-react";
+import { PublicKey } from "@solana/web3.js";
 import { connection } from "./connection";
-import { getBinForPrice } from "./orders";
+import { getBinForPrice, getPairAddress, TOKEN_PAIRS } from "./orders";
+import { setWalletProvider } from "./walletProvider";
+import { placeLimitOrderWithDLMM, closePositionWithDLMM } from "./dlmmClient";
 
 export const dlmm = new LiquidityBookServices({
     mode: MODE.DEVNET,
@@ -31,31 +34,53 @@ export async function placeLimitOrder({
             throw new Error("Wallet not connected");
         }
 
-        // Get bin index for the target price
-        const binIndex = await getBinForPrice(pair, price);
+        const payer = wallet.adapter.publicKey;
 
-        // For now, we'll simulate the transaction
-        // In production, you'd build the actual openPosition instruction
-        console.log(`Placing ${side} limit order:`, {
+        // Set up wallet provider for DLMM client
+        setWalletProvider({
+            wallet,
+            connection,
+            publicKey: payer
+        });
+
+        // Get pair address and pool data
+        const pairAddress = await getPairAddress(pair);
+
+        // Get bin index for the target price
+        const binIndex = await getBinForPrice(pair, price, pairAddress);
+
+        // Get token pair configuration
+        const tokenPair = TOKEN_PAIRS.find(p => p.value === pair);
+        if (!tokenPair) {
+            throw new Error(`Token pair ${pair} not found`);
+        }
+
+        console.log(`Placing ${side} limit order with DLMM SDK:`, {
             pair,
             price,
             amount,
-            binIndex
+            binIndex,
+            pairAddress
         });
 
-        // Simulate transaction delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
-        // In production, you would:
-        // 1. Get the pool address for the pair
-        // 2. Build the openPosition instruction with the calculated bin
-        // 3. Send the transaction using wallet.sendTransaction
+        // Use the new DLMM SDK integration
+        const result = await placeLimitOrderWithDLMM({
+            poolAddress: pairAddress,
+            side,
+            price,
+            size: amount,
+            userPublicKey: payer
+        });
 
         return {
-            success: true,
-            txId: "simulated_tx_" + Date.now(),
-            binIndex
+            success: result.success,
+            txId: result.txId,
+            binIndex,
+            positionMint: result.positionId,
+            pairAddress,
+            message: result.message
         };
+
     } catch (error) {
         console.error("Error placing limit order:", error);
         throw error;
@@ -64,30 +89,46 @@ export async function placeLimitOrder({
 
 export async function closePosition({
     wallet,
-    positionId
+    positionId,
+    pairAddress
 }: {
     wallet: Wallet;
     positionId: string;
+    pairAddress?: string;
 }) {
     try {
         if (!wallet || !wallet.adapter?.publicKey) {
             throw new Error("Wallet not connected");
         }
 
-        // Simulate closing position
-        console.log(`Closing position:`, { positionId });
+        const payer = wallet.adapter.publicKey;
 
-        // Simulate transaction delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        console.log(`Closing position with DLMM SDK:`, { positionId, pairAddress });
 
-        // In production, you would:
-        // 1. Build the closePosition instruction
-        // 2. Send the transaction using wallet.sendTransaction
+        if (!pairAddress) {
+            throw new Error("Pair address is required to close position");
+        }
+
+        // Set up wallet provider for DLMM client
+        setWalletProvider({
+            wallet,
+            connection,
+            publicKey: payer
+        });
+
+        // Use the new DLMM SDK integration
+        const result = await closePositionWithDLMM({
+            poolAddress: pairAddress,
+            positionId,
+            userPublicKey: payer
+        });
 
         return {
-            success: true,
-            txId: "simulated_close_tx_" + Date.now()
+            success: result.success,
+            txId: result.txId,
+            message: result.message
         };
+
     } catch (error) {
         console.error("Error closing position:", error);
         throw error;

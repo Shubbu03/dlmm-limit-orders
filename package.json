@@ -9,6 +9,8 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@meteora-ag/dlmm": "^1.7.3",
+    "@pythnetwork/price-service-client": "^1.9.0",
     "@saros-finance/dlmm-sdk": "1.4.0",
     "@solana/wallet-adapter-base": "0.9.27",
     "@solana/wallet-adapter-react": "0.15.39",
@@ -22,6 +24,7 @@
     "next": "15.5.3",
     "react": "19.1.1",
     "react-dom": "19.1.1",
+    "recharts": "^3.2.1",
     "tailwind-merge": "3.3.1"
   },
   "devDependencies": {

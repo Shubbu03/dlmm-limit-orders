@@ -21,25 +21,48 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-2xl">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-4xl">
           <Link
-            href="/orders/new"
+            href="/limit-order"
             className="group p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 border border-gray-200 dark:border-gray-700"
           >
             <div className="flex items-center space-x-4">
               <div className="flex-shrink-0">
                 <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
                   <svg className="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                   </svg>
                 </div>
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400">
-                  Place New Order
+                  Limit Order
                 </h3>
                 <p className="text-gray-600 dark:text-gray-400">
-                  Set your target price and amount
+                  Set target price and amount
+                </p>
+              </div>
+            </div>
+          </Link>
+
+          <Link
+            href="/stop-loss"
+            className="group p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 border border-gray-200 dark:border-gray-700"
+          >
+            <div className="flex items-center space-x-4">
+              <div className="flex-shrink-0">
+                <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900 rounded-lg flex items-center justify-center">
+                  <svg className="w-6 h-6 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                  </svg>
+                </div>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400">
+                  Stop-Loss
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400">
+                  Auto-sell at trigger price
                 </p>
               </div>
             </div>
@@ -67,6 +90,21 @@ export default function Home() {
               </div>
             </div>
           </Link>
+        </div>
+
+        <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-6 w-full max-w-2xl">
+          <h3 className="text-lg font-semibold text-green-900 dark:text-green-100 mb-2">
+            🔴 Live Integration
+          </h3>
+          <ul className="text-green-800 dark:text-green-200 space-y-2 text-sm">
+            <li>• ✅ Real pool data from Saros Finance DLMM SDK</li>
+            <li>• ✅ Live bin calculations using actual pool parameters</li>
+            <li>• ✅ Real-time price-to-bin mapping</li>
+            <li>• ✅ Actual pair addresses and token mints</li>
+            <li>• ✅ Dynamic active bin IDs and bin steps</li>
+            <li>• 🔴 <strong>Real prices from Pyth Network & CoinGecko</strong></li>
+            <li>• ⚡ Automated stop-loss execution with live price monitoring</li>
+          </ul>
         </div>
 
         <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6 w-full max-w-2xl">

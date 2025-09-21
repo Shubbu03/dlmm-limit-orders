@@ -1,4 +1,5 @@
 import OrderForm from '@/components/orders/OrderForm';
+import LivePoolData from '@/components/orders/LivePoolData';
 
 export default function NewOrderPage() {
     return (
@@ -13,6 +14,7 @@ export default function NewOrderPage() {
                     </p>
                 </div>
 
+                <LivePoolData />
                 <OrderForm />
             </div>
         </div>
