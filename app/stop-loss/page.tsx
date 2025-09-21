@@ -8,6 +8,7 @@ import { getDlmmClient, getPoolInfo, placeStopLossOrderWithDLMM } from '@/lib/dl
 import { OrderStorage, Order } from '@/lib/orders';
 import { getPrice } from '@/lib/price';
 import StopLossMonitor from '@/components/orders/StopLossMonitor';
+import PageLayout from '@/components/layout/PageLayout';
 
 export default function StopLossPage() {
     const { wallet, connected } = useWallet();
@@ -70,9 +71,7 @@ export default function StopLossPage() {
             const pairAddress = await getPairAddress(formData.pair);
             const info = await getPoolInfo(pairAddress);
             setPoolInfo(info);
-            console.log('Pool info loaded:', info);
         } catch (error) {
-            console.error('Error loading pool info:', error);
             showToast('error', 'Failed to load pool information');
         }
     };
@@ -84,16 +83,11 @@ export default function StopLossPage() {
             const price = await getPrice(priceKey);
             setCurrentPrice(price);
 
-            // Check if stop-loss should trigger
             if (formData.triggerPrice && price <= parseFloat(formData.triggerPrice)) {
-                console.log('Stop-loss trigger condition met!', {
-                    currentPrice: price,
-                    triggerPrice: parseFloat(formData.triggerPrice)
-                });
-                // In a real implementation, this would trigger the stop-loss execution
+                // Trigger condition met
             }
         } catch (error) {
-            console.error('Error loading current price:', error);
+            // Silent error handling
         }
     };
 
@@ -108,7 +102,7 @@ export default function StopLossPage() {
 
             setBinInfo({ binIndex, binPrice });
         } catch (error) {
-            console.error('Error updating bin info:', error);
+            // Silent error handling
         }
     };
 
@@ -145,19 +139,7 @@ export default function StopLossPage() {
             // Get DLMM client
             const dlmmClient = await getDlmmClient(pairAddress);
 
-            // Get bin index for the trigger price
             const binIndex = await getBinForPrice(formData.pair, triggerPrice, pairAddress);
-
-            console.log('Placing stop-loss order:', {
-                pair: formData.pair,
-                side: formData.side,
-                triggerPrice,
-                amount,
-                binIndex,
-                pairAddress
-            });
-
-            // Place the stop-loss order using DLMM SDK
             const result = await placeStopLossOrderWithDLMM({
                 poolAddress: pairAddress,
                 side: formData.side,
@@ -187,7 +169,6 @@ export default function StopLossPage() {
 
                 showToast('success', `Stop-loss order placed successfully! TX: ${result.txId}`);
 
-                // Start monitoring
                 setIsMonitoring(true);
 
                 // Reset form
@@ -201,7 +182,6 @@ export default function StopLossPage() {
                 showToast('error', 'Failed to place stop-loss order');
             }
         } catch (error) {
-            console.error('Error placing stop-loss order:', error);
             showToast('error', `Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
         } finally {
             setIsSubmitting(false);
@@ -216,29 +196,29 @@ export default function StopLossPage() {
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
             <div className="max-w-2xl mx-auto px-4">
+                {!connected && (
+                    <div className="mb-6 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+                        <div className="flex items-center">
+                            <svg className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                            </svg>
+                            <div>
+                                <h3 className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+                                    Wallet Not Connected
+                                </h3>
+                                <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
+                                    Connect your wallet to create stop-loss orders and execute trades.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
                     <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
                         Place Stop-Loss Order
                     </h1>
 
-                    {/* Pool Information */}
-                    {poolInfo && (
-                        <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                            <h3 className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-2">
-                                Pool Information
-                            </h3>
-                            <div className="grid grid-cols-2 gap-4 text-sm">
-                                <div>
-                                    <span className="text-blue-700 dark:text-blue-300">Active Bin:</span>
-                                    <span className="ml-2 font-mono">{poolInfo.activeId}</span>
-                                </div>
-                                <div>
-                                    <span className="text-blue-700 dark:text-blue-300">Bin Step:</span>
-                                    <span className="ml-2 font-mono">{poolInfo.binStep}</span>
-                                </div>
-                            </div>
-                        </div>
-                    )}
 
                     {/* Current Price */}
                     {currentPrice && (
@@ -264,34 +244,6 @@ export default function StopLossPage() {
                         </div>
                     )}
 
-                    {/* Bin Information */}
-                    {binInfo && (
-                        <div className="mb-6 p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
-                            <h3 className="text-sm font-medium text-orange-900 dark:text-orange-100 mb-2">
-                                Bin Mapping
-                            </h3>
-                            <div className="grid grid-cols-2 gap-4 text-sm">
-                                <div>
-                                    <span className="text-orange-700 dark:text-orange-300">Trigger Price:</span>
-                                    <span className="ml-2 font-mono">${formData.triggerPrice}</span>
-                                </div>
-                                <div>
-                                    <span className="text-orange-700 dark:text-orange-300">Bin Index:</span>
-                                    <span className="ml-2 font-mono">{binInfo.binIndex}</span>
-                                </div>
-                                <div>
-                                    <span className="text-orange-700 dark:text-orange-300">Bin Price:</span>
-                                    <span className="ml-2 font-mono">${binInfo.binPrice.toFixed(4)}</span>
-                                </div>
-                                <div>
-                                    <span className="text-orange-700 dark:text-orange-300">Price Diff:</span>
-                                    <span className="ml-2 font-mono">
-                                        {((parseFloat(formData.triggerPrice) - binInfo.binPrice) / binInfo.binPrice * 100).toFixed(2)}%
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    )}
 
                     {/* Stop-Loss Monitor */}
                     {isMonitoring && formData.triggerPrice && (
@@ -300,7 +252,6 @@ export default function StopLossPage() {
                                 pair={formData.pair}
                                 triggerPrice={parseFloat(formData.triggerPrice)}
                                 onTrigger={() => {
-                                    console.log('Stop-loss triggered!');
                                     showToast('success', 'Stop-loss triggered! Executing order...');
                                 }}
                                 isActive={isMonitoring}

@@ -26,17 +26,12 @@ export default function StopLossMonitor({ pair, triggerPrice, onTrigger, isActiv
                 setCurrentPrice(price);
                 setLastUpdate(new Date());
 
-                // Check if stop-loss should trigger
                 if (price <= triggerPrice && !isTriggered) {
-                    console.log('Stop-loss trigger condition met!', {
-                        currentPrice: price,
-                        triggerPrice: triggerPrice
-                    });
                     setIsTriggered(true);
                     onTrigger();
                 }
             } catch (error) {
-                console.error('Error fetching price for stop-loss monitoring:', error);
+                // Silent error handling
             }
         };
 
@@ -57,7 +52,7 @@ export default function StopLossMonitor({ pair, triggerPrice, onTrigger, isActiv
         <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
             <div className="flex items-center justify-between mb-2">
                 <h3 className="text-sm font-medium text-purple-900 dark:text-purple-100">
-                    🔍 Stop-Loss Monitor
+                    Stop-Loss Monitor
                 </h3>
                 <div className={`px-2 py-1 rounded-full text-xs font-medium ${isTriggered
                     ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
@@ -114,7 +109,7 @@ export default function StopLossMonitor({ pair, triggerPrice, onTrigger, isActiv
             {isTriggered && (
                 <div className="mt-3 p-2 bg-red-100 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded">
                     <p className="text-sm text-red-800 dark:text-red-200 font-medium">
-                        ⚠️ Stop-loss triggered! Current price (${currentPrice?.toFixed(2)}) is below trigger price (${triggerPrice.toFixed(2)})
+                        Stop-loss triggered! Current price (${currentPrice?.toFixed(2)}) is below trigger price (${triggerPrice.toFixed(2)})
                     </p>
                 </div>
             )}

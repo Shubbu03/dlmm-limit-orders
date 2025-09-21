@@ -7,6 +7,7 @@ import { TOKEN_PAIRS, getPairAddress, getBinForPrice, priceForBin } from '@/lib/
 import { getDlmmClient, getPoolInfo, placeLimitOrderWithDLMM } from '@/lib/dlmmClient';
 import { OrderStorage, Order } from '@/lib/orders';
 import { getPrice } from '@/lib/price';
+import PageLayout from '@/components/layout/PageLayout';
 
 export default function LimitOrderPage() {
     const { wallet, connected } = useWallet();
@@ -57,9 +58,7 @@ export default function LimitOrderPage() {
             const pairAddress = await getPairAddress(formData.pair);
             const info = await getPoolInfo(pairAddress);
             setPoolInfo(info);
-            console.log('Pool info loaded:', info);
         } catch (error) {
-            console.error('Error loading pool info:', error);
             showToast('error', 'Failed to load pool information');
         }
     };
@@ -71,7 +70,7 @@ export default function LimitOrderPage() {
             const price = await getPrice(priceKey);
             setCurrentPrice(price);
         } catch (error) {
-            console.error('Error loading current price:', error);
+            // Silent error handling
         }
     };
 
@@ -86,7 +85,7 @@ export default function LimitOrderPage() {
 
             setBinInfo({ binIndex, binPrice });
         } catch (error) {
-            console.error('Error updating bin info:', error);
+            // Silent error handling
         }
     };
 
@@ -123,19 +122,7 @@ export default function LimitOrderPage() {
             // Get DLMM client
             const dlmmClient = await getDlmmClient(pairAddress);
 
-            // Get bin index for the target price
             const binIndex = await getBinForPrice(formData.pair, price, pairAddress);
-
-            console.log('Placing limit order:', {
-                pair: formData.pair,
-                side: formData.side,
-                price,
-                amount,
-                binIndex,
-                pairAddress
-            });
-
-            // Place the limit order using DLMM SDK
             const result = await placeLimitOrderWithDLMM({
                 poolAddress: pairAddress,
                 side: formData.side,
@@ -175,7 +162,6 @@ export default function LimitOrderPage() {
                 showToast('error', 'Failed to place limit order');
             }
         } catch (error) {
-            console.error('Error placing limit order:', error);
             showToast('error', `Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
         } finally {
             setIsSubmitting(false);
@@ -183,31 +169,34 @@ export default function LimitOrderPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
-            <div className="max-w-2xl mx-auto px-4">
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-                        Place Limit Order
-                    </h1>
-
-                    {/* Pool Information */}
-                    {poolInfo && (
-                        <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                            <h3 className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-2">
-                                Pool Information
+        <PageLayout
+            title="Place Limit Order"
+            subtitle="Set a target price and amount for your order"
+            showBackButton={true}
+            backButtonHref="/orders"
+            backButtonLabel="Back to Orders"
+        >
+            {!connected && (
+                <div className="mb-6 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+                    <div className="flex items-center">
+                        <svg className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                        </svg>
+                        <div>
+                            <h3 className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+                                Wallet Not Connected
                             </h3>
-                            <div className="grid grid-cols-2 gap-4 text-sm">
-                                <div>
-                                    <span className="text-blue-700 dark:text-blue-300">Active Bin:</span>
-                                    <span className="ml-2 font-mono">{poolInfo.activeId}</span>
-                                </div>
-                                <div>
-                                    <span className="text-blue-700 dark:text-blue-300">Bin Step:</span>
-                                    <span className="ml-2 font-mono">{poolInfo.binStep}</span>
-                                </div>
-                            </div>
+                            <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
+                                Connect your wallet to create limit orders and execute trades.
+                            </p>
                         </div>
-                    )}
+                    </div>
+                </div>
+            )}
+
+            <div className="max-w-2xl mx-auto">
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+
 
                     {/* Current Price */}
                     {currentPrice && (
@@ -221,34 +210,6 @@ export default function LimitOrderPage() {
                         </div>
                     )}
 
-                    {/* Bin Information */}
-                    {binInfo && (
-                        <div className="mb-6 p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
-                            <h3 className="text-sm font-medium text-orange-900 dark:text-orange-100 mb-2">
-                                Bin Mapping
-                            </h3>
-                            <div className="grid grid-cols-2 gap-4 text-sm">
-                                <div>
-                                    <span className="text-orange-700 dark:text-orange-300">Target Price:</span>
-                                    <span className="ml-2 font-mono">${formData.price}</span>
-                                </div>
-                                <div>
-                                    <span className="text-orange-700 dark:text-orange-300">Bin Index:</span>
-                                    <span className="ml-2 font-mono">{binInfo.binIndex}</span>
-                                </div>
-                                <div>
-                                    <span className="text-orange-700 dark:text-orange-300">Bin Price:</span>
-                                    <span className="ml-2 font-mono">${binInfo.binPrice.toFixed(4)}</span>
-                                </div>
-                                <div>
-                                    <span className="text-orange-700 dark:text-orange-300">Price Diff:</span>
-                                    <span className="ml-2 font-mono">
-                                        {((parseFloat(formData.price) - binInfo.binPrice) / binInfo.binPrice * 100).toFixed(2)}%
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    )}
 
                     <form onSubmit={handleSubmit} className="space-y-6">
                         {/* Token Pair */}
@@ -342,17 +303,27 @@ export default function LimitOrderPage() {
                         </button>
                     </form>
 
-                    {/* Toast Notification */}
-                    {toast && (
-                        <div className={`fixed top-4 right-4 p-4 rounded-md shadow-lg z-50 ${toast.type === 'success'
-                            ? 'bg-green-500 text-white'
-                            : 'bg-red-500 text-white'
-                            }`}>
-                            {toast.message}
-                        </div>
-                    )}
                 </div>
             </div>
-        </div>
+
+            {/* Toast Notification */}
+            {toast && (
+                <div className={`fixed top-4 right-4 p-4 rounded-lg shadow-xl z-50 transition-all duration-300 ${toast.type === 'success'
+                    ? 'bg-green-500 text-white'
+                    : 'bg-red-500 text-white'
+                    }`}>
+                    <div className="flex items-center space-x-2">
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            {toast.type === 'success' ? (
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            ) : (
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            )}
+                        </svg>
+                        <span>{toast.message}</span>
+                    </div>
+                </div>
+            )}
+        </PageLayout>
     );
 }

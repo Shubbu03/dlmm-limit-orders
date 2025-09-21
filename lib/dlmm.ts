@@ -29,62 +29,42 @@ export async function placeLimitOrder({
     amount,
     side
 }: PlaceLimitOrderParams) {
-    try {
-        if (!wallet || !wallet.adapter?.publicKey) {
-            throw new Error("Wallet not connected");
-        }
-
-        const payer = wallet.adapter.publicKey;
-
-        // Set up wallet provider for DLMM client
-        setWalletProvider({
-            wallet,
-            connection,
-            publicKey: payer
-        });
-
-        // Get pair address and pool data
-        const pairAddress = await getPairAddress(pair);
-
-        // Get bin index for the target price
-        const binIndex = await getBinForPrice(pair, price, pairAddress);
-
-        // Get token pair configuration
-        const tokenPair = TOKEN_PAIRS.find(p => p.value === pair);
-        if (!tokenPair) {
-            throw new Error(`Token pair ${pair} not found`);
-        }
-
-        console.log(`Placing ${side} limit order with DLMM SDK:`, {
-            pair,
-            price,
-            amount,
-            binIndex,
-            pairAddress
-        });
-
-        // Use the new DLMM SDK integration
-        const result = await placeLimitOrderWithDLMM({
-            poolAddress: pairAddress,
-            side,
-            price,
-            size: amount,
-            userPublicKey: payer
-        });
-
-        return {
-            success: result.success,
-            txId: result.txId,
-            binIndex,
-            positionMint: result.positionId,
-            pairAddress,
-            message: result.message
-        };
-
-    } catch (error) {
-        console.error("Error placing limit order:", error);
-        throw error;
+    if (!wallet || !wallet.adapter?.publicKey) {
+        throw new Error("Wallet not connected");
     }
+
+    const payer = wallet.adapter.publicKey;
+
+    setWalletProvider({
+        wallet,
+        connection,
+        publicKey: payer
+    });
+
+    const pairAddress = await getPairAddress(pair);
+    const binIndex = await getBinForPrice(pair, price, pairAddress);
+
+    const tokenPair = TOKEN_PAIRS.find(p => p.value === pair);
+    if (!tokenPair) {
+        throw new Error(`Token pair ${pair} not found`);
+    }
+
+    const result = await placeLimitOrderWithDLMM({
+        poolAddress: pairAddress,
+        side,
+        price,
+        size: amount,
+        userPublicKey: payer
+    });
+
+    return {
+        success: result.success,
+        txId: result.txId,
+        binIndex,
+        positionMint: result.positionId,
+        pairAddress,
+        message: result.message
+    };
 }
 
 export async function closePosition({
@@ -96,41 +76,31 @@ export async function closePosition({
     positionId: string;
     pairAddress?: string;
 }) {
-    try {
-        if (!wallet || !wallet.adapter?.publicKey) {
-            throw new Error("Wallet not connected");
-        }
-
-        const payer = wallet.adapter.publicKey;
-
-        console.log(`Closing position with DLMM SDK:`, { positionId, pairAddress });
-
-        if (!pairAddress) {
-            throw new Error("Pair address is required to close position");
-        }
-
-        // Set up wallet provider for DLMM client
-        setWalletProvider({
-            wallet,
-            connection,
-            publicKey: payer
-        });
-
-        // Use the new DLMM SDK integration
-        const result = await closePositionWithDLMM({
-            poolAddress: pairAddress,
-            positionId,
-            userPublicKey: payer
-        });
-
-        return {
-            success: result.success,
-            txId: result.txId,
-            message: result.message
-        };
-
-    } catch (error) {
-        console.error("Error closing position:", error);
-        throw error;
+    if (!wallet || !wallet.adapter?.publicKey) {
+        throw new Error("Wallet not connected");
     }
+
+    if (!pairAddress) {
+        throw new Error("Pair address is required to close position");
+    }
+
+    const payer = wallet.adapter.publicKey;
+
+    setWalletProvider({
+        wallet,
+        connection,
+        publicKey: payer
+    });
+
+    const result = await closePositionWithDLMM({
+        poolAddress: pairAddress,
+        positionId,
+        userPublicKey: payer
+    });
+
+    return {
+        success: result.success,
+        txId: result.txId,
+        message: result.message
+    };
 }

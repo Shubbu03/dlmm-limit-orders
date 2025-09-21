@@ -58,7 +58,6 @@ export default function OrderForm() {
                     side: formData.side
                 });
             } else {
-                // For stop-loss orders, use the new DLMM SDK integration
                 if (!wallet.adapter.publicKey) {
                     throw new Error("Wallet public key not available");
                 }
@@ -89,10 +88,7 @@ export default function OrderForm() {
                     triggerPrice: formData.type === 'stop-loss' ? triggerPrice : undefined
                 };
 
-                // Save to storage
                 OrderStorage.saveOrder(order);
-
-                // Reset form
                 setFormData({
                     pair: 'SOL/USDC',
                     type: 'limit',
@@ -105,7 +101,6 @@ export default function OrderForm() {
                 alert('Order placed successfully!');
             }
         } catch (error) {
-            console.error('Error placing order:', error);
             alert('Failed to place order. Please try again.');
         } finally {
             setIsSubmitting(false);

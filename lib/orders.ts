@@ -31,17 +31,16 @@ export type StopLossOrder = {
     pairAddress?: string;
 };
 
-// Token pairs configuration with actual token addresses
 export const TOKEN_PAIRS = [
     {
         value: "SOL/USDC",
         label: "SOL/USDC",
         baseToken: {
-            mint: "So11111111111111111111111111111111111111112", // SOL
+            mint: "So11111111111111111111111111111111111111112",
             decimals: 9
         },
         quoteToken: {
-            mint: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", // USDC
+            mint: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
             decimals: 6
         }
     },
@@ -49,11 +48,11 @@ export const TOKEN_PAIRS = [
         value: "SOL/USDT",
         label: "SOL/USDT",
         baseToken: {
-            mint: "So11111111111111111111111111111111111111112", // SOL
+            mint: "So11111111111111111111111111111111111111112",
             decimals: 9
         },
         quoteToken: {
-            mint: "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB", // USDT
+            mint: "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
             decimals: 6
         }
     }
@@ -72,7 +71,6 @@ export interface TokenPair {
     };
 }
 
-// Helper functions for price-to-bin conversion (simplified for now)
 function getPriceFromId(binStep: number, binId: number, baseTokenDecimal: number, quoteTokenDecimal: number): number {
     const binStepFactor = 1 + binStep / 10000;
     const price = Math.pow(binStepFactor, binId);
@@ -121,8 +119,7 @@ export async function getBinForPrice(pairValue: string, price: number, pairAddre
 
         return binId;
     } catch (error) {
-        console.error('Error calculating bin for price:', error);
-        throw new Error(`Failed to calculate bin for price: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        throw error;
     }
 }
 
@@ -160,8 +157,7 @@ export async function priceForBin(binIndex: number, pairValue: string, pairAddre
 
         return price;
     } catch (error) {
-        console.error('Error calculating price for bin:', error);
-        throw new Error(`Failed to calculate price for bin: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        throw error;
     }
 }
 
@@ -184,14 +180,12 @@ export async function getPairAddress(pairValue: string): Promise<string> {
         // In production, you'd want to filter by token mints to find the exact pair
         return poolAddresses[0];
     } catch (error) {
-        console.error('Error fetching pair address:', error);
-        throw new Error(`Failed to fetch pair address: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        throw error;
     }
 }
 
 // DLMM SDK Integration Functions
 
-// Place a limit order using DLMM SDK
 export async function placeLimitOrder(params: {
     pool: string;
     side: 'buy' | 'sell';
@@ -199,28 +193,16 @@ export async function placeLimitOrder(params: {
     size: number;
     userPublicKey: PublicKey;
 }) {
-    try {
-        const { pool, side, price, size, userPublicKey } = params;
-
-        console.log('Placing limit order:', { pool, side, price, size });
-
-        // Use DLMM SDK to place the order
-        const result = await placeLimitOrderWithDLMM({
-            poolAddress: pool,
-            side,
-            price,
-            size,
-            userPublicKey
-        });
-
-        return result;
-    } catch (error) {
-        console.error('Error placing limit order:', error);
-        throw error;
-    }
+    const { pool, side, price, size, userPublicKey } = params;
+    return await placeLimitOrderWithDLMM({
+        poolAddress: pool,
+        side,
+        price,
+        size,
+        userPublicKey
+    });
 }
 
-// Place a stop-loss order using DLMM SDK
 export async function placeStopLossOrder(params: {
     pool: string;
     side: 'buy' | 'sell';
@@ -228,50 +210,27 @@ export async function placeStopLossOrder(params: {
     size: number;
     userPublicKey: PublicKey;
 }) {
-    try {
-        const { pool, side, triggerPrice, size, userPublicKey } = params;
-
-        console.log('Placing stop-loss order:', { pool, side, triggerPrice, size });
-
-        // Use DLMM SDK to place the stop-loss order
-        const result = await placeStopLossOrderWithDLMM({
-            poolAddress: pool,
-            side,
-            triggerPrice,
-            size,
-            userPublicKey
-        });
-
-        return result;
-    } catch (error) {
-        console.error('Error placing stop-loss order:', error);
-        throw error;
-    }
+    const { pool, side, triggerPrice, size, userPublicKey } = params;
+    return await placeStopLossOrderWithDLMM({
+        poolAddress: pool,
+        side,
+        triggerPrice,
+        size,
+        userPublicKey
+    });
 }
 
-// Close a position using DLMM SDK
 export async function closePosition(params: {
     pool: string;
     positionId: string;
     userPublicKey: PublicKey;
 }) {
-    try {
-        const { pool, positionId, userPublicKey } = params;
-
-        console.log('Closing position:', { pool, positionId });
-
-        // Use DLMM SDK to close the position
-        const result = await closePositionWithDLMM({
-            poolAddress: pool,
-            positionId,
-            userPublicKey
-        });
-
-        return result;
-    } catch (error) {
-        console.error('Error closing position:', error);
-        throw error;
-    }
+    const { pool, positionId, userPublicKey } = params;
+    return await closePositionWithDLMM({
+        poolAddress: pool,
+        positionId,
+        userPublicKey
+    });
 }
 
 // Client-side order storage (using localStorage for persistence)
@@ -288,7 +247,6 @@ export class OrderStorage {
                 createdAt: new Date(order.createdAt)
             })) : [];
         } catch (error) {
-            console.error('Error loading orders from storage:', error);
             return [];
         }
     }
@@ -301,7 +259,7 @@ export class OrderStorage {
             orders.push(order);
             localStorage.setItem(this.STORAGE_KEY, JSON.stringify(orders));
         } catch (error) {
-            console.error('Error saving order to storage:', error);
+            // Silent error handling
         }
     }
 
@@ -316,7 +274,7 @@ export class OrderStorage {
                 localStorage.setItem(this.STORAGE_KEY, JSON.stringify(orders));
             }
         } catch (error) {
-            console.error('Error updating order in storage:', error);
+            // Silent error handling
         }
     }
 
@@ -328,7 +286,7 @@ export class OrderStorage {
             const filteredOrders = orders.filter(order => order.id !== orderId);
             localStorage.setItem(this.STORAGE_KEY, JSON.stringify(filteredOrders));
         } catch (error) {
-            console.error('Error removing order from storage:', error);
+            // Silent error handling
         }
     }
 }

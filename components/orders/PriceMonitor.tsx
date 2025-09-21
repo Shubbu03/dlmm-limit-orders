@@ -39,7 +39,6 @@ export default function PriceMonitor({ symbols, refreshInterval = 10000 }: Price
             setLastUpdate(new Date());
             setIsLoading(false);
         } catch (error) {
-            console.error('Error fetching prices:', error);
             setIsLoading(false);
         }
     };
@@ -69,7 +68,7 @@ export default function PriceMonitor({ symbols, refreshInterval = 10000 }: Price
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 mb-6">
             <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    📊 Live Prices
+                    Live Prices
                 </h3>
                 <div className="flex items-center space-x-2">
                     <button
@@ -116,8 +115,7 @@ export default function PriceMonitor({ symbols, refreshInterval = 10000 }: Price
 
             <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
                 <div className="text-green-800 dark:text-green-200 text-sm">
-                    🔴 <strong>Live Price Data:</strong> Prices are fetched from Pyth Network (primary) and CoinGecko (fallback) every {refreshInterval / 1000} seconds.
-                    Stop-loss orders will execute automatically when trigger prices are reached.
+                    <strong>Live Price Data:</strong> Prices update every {refreshInterval / 1000} seconds. Stop-loss orders execute automatically when trigger prices are reached.
                 </div>
             </div>
         </div>
