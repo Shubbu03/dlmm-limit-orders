@@ -1,4 +1,7 @@
 import { PublicKey } from '@solana/web3.js';
+import { Wallet } from '@solana/wallet-adapter-react';
+import { connection } from './connection';
+import { setWalletProvider } from './walletProvider';
 import {
     placeLimitOrderWithDLMM,
     placeStopLossOrderWithDLMM,
@@ -216,8 +219,17 @@ export async function placeStopLossOrder(params: {
     triggerPrice: number;
     size: number;
     userPublicKey: PublicKey;
+    wallet: Wallet;
 }) {
-    const { pool, side, triggerPrice, size, userPublicKey } = params;
+    const { pool, side, triggerPrice, size, userPublicKey, wallet } = params;
+
+    // Set wallet provider BEFORE calling DLMM functions
+    setWalletProvider({
+        wallet,
+        connection,
+        publicKey: userPublicKey
+    });
+
     return await placeStopLossOrderWithDLMM({
         poolAddress: pool,
         side,

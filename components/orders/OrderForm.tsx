@@ -68,7 +68,8 @@ export default function OrderForm() {
                     side: formData.side,
                     triggerPrice,
                     size: amount,
-                    userPublicKey: wallet.adapter.publicKey
+                    userPublicKey: wallet.adapter.publicKey,
+                    wallet
                 });
             }
 
