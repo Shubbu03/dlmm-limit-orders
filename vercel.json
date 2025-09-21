@@ -6,7 +6,7 @@
   },
   "buildCommand": "bun run build",
   "outputDirectory": ".next",
-  "installCommand": "bun install --production=false",
+  "installCommand": "bun install",
   "framework": "nextjs",
   "regions": ["iad1"]
 }
