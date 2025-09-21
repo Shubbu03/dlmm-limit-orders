@@ -1,0 +1,15 @@
+{
+  "functions": {
+    "app/**/*.tsx": {
+      "maxDuration": 30
+    }
+  },
+  "buildCommand": "bun run build",
+  "outputDirectory": ".next",
+  "installCommand": "bun install --production=false",
+  "framework": "nextjs",
+  "regions": ["iad1"],
+  "env": {
+    "NEXT_PUBLIC_RPC_ENDPOINT": "@next_public_rpc_endpoint"
+  }
+}

@@ -1,4 +1,3 @@
-import { dlmm } from './dlmm';
 import { PublicKey } from '@solana/web3.js';
 import {
     placeLimitOrderWithDLMM,
@@ -93,6 +92,9 @@ export async function getBinForPrice(pairValue: string, price: number, pairAddre
 
         let pair: { binStep: number;[key: string]: unknown };
 
+        const { getDlmmInstance } = await import('./dlmm');
+        const dlmm = await getDlmmInstance();
+
         if (pairAddress) {
             // Use provided pair address
             pair = await dlmm.getPairAccount(new PublicKey(pairAddress));
@@ -133,6 +135,9 @@ export async function priceForBin(binIndex: number, pairValue: string, pairAddre
 
         let pair: { binStep: number;[key: string]: unknown };
 
+        const { getDlmmInstance } = await import('./dlmm');
+        const dlmm = await getDlmmInstance();
+
         if (pairAddress) {
             // Use provided pair address
             pair = await dlmm.getPairAccount(new PublicKey(pairAddress));
@@ -170,6 +175,8 @@ export async function getPairAddress(pairValue: string): Promise<string> {
         }
 
         // Fetch available pools
+        const { getDlmmInstance } = await import('./dlmm');
+        const dlmm = await getDlmmInstance();
         const poolAddresses = await dlmm.fetchPoolAddresses();
 
         if (poolAddresses.length === 0) {

@@ -1,6 +1,5 @@
 import { Connection, PublicKey } from "@solana/web3.js";
 import { getProvider } from "./walletProvider";
-import { LiquidityBookServices, MODE } from "@saros-finance/dlmm-sdk";
 
 const RPC_URL = process.env.NEXT_PUBLIC_RPC_ENDPOINT || "https://api.devnet.solana.com";
 
@@ -21,6 +20,7 @@ export async function getDlmmClient(poolAddress: string): Promise<DLMMClient> {
 
 export async function getPoolInfo(poolAddress: string) {
     const poolPubkey = new PublicKey(poolAddress);
+    const { LiquidityBookServices, MODE } = await import("@saros-finance/dlmm-sdk");
     const dlmm = new LiquidityBookServices({
         mode: MODE.DEVNET,
         options: {
@@ -34,6 +34,7 @@ export async function getPoolInfo(poolAddress: string) {
 
 export async function getUserPositions(poolAddress: string, userPublicKey: PublicKey) {
     const poolPubkey = new PublicKey(poolAddress);
+    const { LiquidityBookServices, MODE } = await import("@saros-finance/dlmm-sdk");
     const dlmm = new LiquidityBookServices({
         mode: MODE.DEVNET,
         options: {

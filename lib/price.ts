@@ -1,3 +1,14 @@
+// Lazy load Pyth client to reduce bundle size
+let pythClient: any = null;
+
+const getPythClient = async () => {
+    if (!pythClient) {
+        const { PriceServiceConnection } = await import("@pythnetwork/price-service-client");
+        pythClient = new PriceServiceConnection("https://hermes.pyth.network");
+    }
+    return pythClient;
+};
+
 const PYTH_PRICE_FEEDS = {
     "SOL/USD": "H6ARHf6YXhGYeQfUzQNGk6rDNnLBQKrenN712K4AQJEG",
     "USDC/USD": "Gnt27xtC473ZT2Mw5u8wZ68Z3gULkSTb5DuxJy7eJotD",

@@ -1,17 +1,25 @@
-import { LiquidityBookServices, MODE } from "@saros-finance/dlmm-sdk";
 import { Wallet } from "@solana/wallet-adapter-react";
 import { connection } from "./connection";
 import { getBinForPrice, getPairAddress, TOKEN_PAIRS } from "./orders";
 import { setWalletProvider } from "./walletProvider";
 import { placeLimitOrderWithDLMM, closePositionWithDLMM } from "./dlmmClient";
 
-export const dlmm = new LiquidityBookServices({
-    mode: MODE.DEVNET,
-    options: {
-        rpcUrl: process.env.NEXT_PUBLIC_RPC_ENDPOINT!,
-        commitmentOrConfig: "confirmed"
+// Lazy load DLMM SDK to reduce bundle size
+let dlmmInstance: any = null;
+
+export const getDlmmInstance = async () => {
+    if (!dlmmInstance) {
+        const { LiquidityBookServices, MODE } = await import("@saros-finance/dlmm-sdk");
+        dlmmInstance = new LiquidityBookServices({
+            mode: MODE.DEVNET,
+            options: {
+                rpcUrl: process.env.NEXT_PUBLIC_RPC_ENDPOINT!,
+                commitmentOrConfig: "confirmed"
+            }
+        });
     }
-});
+    return dlmmInstance;
+};
 
 export interface PlaceLimitOrderParams {
     wallet: Wallet;
