@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { dlmm } from '@/lib/dlmm';
 import { TOKEN_PAIRS, getPairAddress } from '@/lib/orders';
 
 interface PoolInfo {
@@ -14,6 +13,7 @@ interface PoolInfo {
     loading: boolean;
     error?: string;
 }
+
 
 export default function LivePoolData() {
     const [poolsInfo, setPoolsInfo] = useState<PoolInfo[]>([]);
@@ -40,13 +40,17 @@ export default function LivePoolData() {
 
             try {
                 const pairAddress = await getPairAddress(tokenPair.value);
-                const pairAccount = await dlmm.getPairAccount(new (await import('@solana/web3.js')).PublicKey(pairAddress));
+                const { getDlmmInstance } = await import('@/lib/dlmm');
+                const dlmm = await getDlmmInstance();
+                const { PublicKey } = await import('@solana/web3.js');
+                const pairAccount = await dlmm.getPairAccount(new PublicKey(pairAddress));
 
                 poolInfo.pairAddress = pairAddress;
-                poolInfo.activeId = pairAccount.activeId;
-                poolInfo.binStep = pairAccount.binStep;
-                poolInfo.tokenMintX = typeof pairAccount.tokenMintX === 'string' ? pairAccount.tokenMintX : pairAccount.tokenMintX.toString();
-                poolInfo.tokenMintY = typeof pairAccount.tokenMintY === 'string' ? pairAccount.tokenMintY : pairAccount.tokenMintY.toString();
+                const account = pairAccount;
+                poolInfo.activeId = account.activeId || 0;
+                poolInfo.binStep = account.binStep || 0;
+                poolInfo.tokenMintX = typeof account.tokenMintX === 'string' ? account.tokenMintX : String(account.tokenMintX || '');
+                poolInfo.tokenMintY = typeof account.tokenMintY === 'string' ? account.tokenMintY : String(account.tokenMintY || '');
                 poolInfo.loading = false;
             } catch (error) {
                 poolInfo.error = error instanceof Error ? error.message : 'Failed to load pool data';

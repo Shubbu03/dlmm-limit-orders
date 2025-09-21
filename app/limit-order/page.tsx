@@ -19,7 +19,7 @@ export default function LimitOrderPage() {
     });
     const [poolInfo, setPoolInfo] = useState<{ binStep: number;[key: string]: unknown } | null>(null);
     const [currentPrice, setCurrentPrice] = useState<number | null>(null);
-    const [binInfo, setBinInfo] = useState<{ binIndex: number; binPrice: number } | null>(null);
+    const [, setBinInfo] = useState<{ binIndex: number; binPrice: number } | null>(null);
     const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
     // Handle URL parameters for pre-filling form

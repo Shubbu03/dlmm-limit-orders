@@ -1,13 +1,21 @@
 // Lazy load Pyth client to reduce bundle size
-let pythClient: any = null;
+interface PythPriceFeed {
+    id: string;
+    price: {
+        price: number;
+        expo: number;
+    };
+}
 
-const getPythClient = async () => {
-    if (!pythClient) {
-        const { PriceServiceConnection } = await import("@pythnetwork/price-service-client");
-        pythClient = new PriceServiceConnection("https://hermes.pyth.network");
-    }
-    return pythClient;
-};
+// let pythClient: { getLatestPriceFeeds: (priceIds: string[]) => Promise<any> } | null = null;
+
+// const getPythClient = async () => {
+//     if (!pythClient) {
+//         const { PriceServiceConnection } = await import("@pythnetwork/price-service-client");
+//         pythClient = new PriceServiceConnection("https://hermes.pyth.network");
+//     }
+//     return pythClient;
+// };
 
 const PYTH_PRICE_FEEDS = {
     "SOL/USD": "H6ARHf6YXhGYeQfUzQNGk6rDNnLBQKrenN712K4AQJEG",
@@ -168,7 +176,7 @@ export async function getPythPrice(symbol: string): Promise<number> {
             const data = await response.json();
             if (!data || !data.price_feeds || data.price_feeds.length === 0) continue;
 
-            const priceFeed = data.price_feeds.find((feed: { id: string; price: { price: number; expo: number } }) => feed.id === priceFeedId);
+            const priceFeed = data.price_feeds.find((feed: PythPriceFeed) => feed.id === priceFeedId);
             if (!priceFeed || !priceFeed.price) continue;
 
             const price = priceFeed.price.price;

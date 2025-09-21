@@ -3,9 +3,9 @@ import { connection } from "./connection";
 import { getBinForPrice, getPairAddress, TOKEN_PAIRS } from "./orders";
 import { setWalletProvider } from "./walletProvider";
 import { placeLimitOrderWithDLMM, closePositionWithDLMM } from "./dlmmClient";
+import { LiquidityBookServices } from "@saros-finance/dlmm-sdk";
 
-// Lazy load DLMM SDK to reduce bundle size
-let dlmmInstance: any = null;
+let dlmmInstance: LiquidityBookServices | null = null;
 
 export const getDlmmInstance = async () => {
     if (!dlmmInstance) {
